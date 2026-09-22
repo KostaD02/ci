@@ -1,0 +1,43 @@
+name: PR Title
+
+on:
+  workflow_call:
+    inputs:
+      command:
+        description: Command the PR title is piped into.
+        required: false
+        type: string
+        default: pnpm exec commitlint
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      pnpm-version:
+        description: Leave empty to take the version from the packageManager field.
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  commitlint:
+    name: Commitlint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          version: ${{ inputs.pnpm-version }}
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ inputs.node-version }}
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: echo "$PR_TITLE" | ${{ inputs.command }}
