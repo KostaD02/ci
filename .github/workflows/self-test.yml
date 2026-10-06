@@ -1,0 +1,28 @@
+name: Self-test
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  sticky-comment:
+    name: Sticky comment
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/sticky-comment
+        with:
+          marker: "<!-- ci-selftest -->"
+          body: |
+            ## Self-test
+
+            Posted by `sticky-comment` on run ${{ github.run_number }} for commit ${{ github.event.pull_request.head.sha }}.
+            Push again and this comment is updated in place instead of a new one appearing.
