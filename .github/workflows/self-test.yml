@@ -45,4 +45,4 @@ jobs:
 
             node_modules cache: ${{ steps.setup.outputs.cache-hit == 'true' && 'hit' || 'miss' }}
 
-            Run ${{ github.run_number }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
+            Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
