@@ -1,0 +1,99 @@
+name: Setup
+description: Install Node and a package manager, restore the dependency cache and install on a miss. Expects the repository to be checked out already.
+
+inputs:
+  node-version:
+    description: Node version to install.
+    required: false
+    default: "22"
+  package-manager:
+    description: pnpm, npm or yarn.
+    required: false
+    default: pnpm
+  pnpm-version:
+    description: pnpm version. Leave empty to read it from the packageManager field.
+    required: false
+    default: ""
+  working-directory:
+    description: Directory holding the manifest and lockfile.
+    required: false
+    default: "."
+  install:
+    description: Set to false to skip the dependency install.
+    required: false
+    default: "true"
+  install-command:
+    description: Replaces the install command entirely.
+    required: false
+    default: ""
+  cache-node-modules:
+    description: Cache node_modules keyed on the lockfile and skip the install on a hit.
+    required: false
+    default: "true"
+
+outputs:
+  cache-hit:
+    description: Whether node_modules was restored from the cache.
+    value: ${{ steps.cache.outputs.cache-hit }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install pnpm
+      if: inputs.package-manager == 'pnpm'
+      uses: pnpm/action-setup@v6
+      with:
+        version: ${{ inputs.pnpm-version }}
+
+    - name: Resolve lockfile and install command
+      id: lock
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PACKAGE_MANAGER: ${{ inputs.package-manager }}
+        INSTALL_COMMAND: ${{ inputs.install-command }}
+      run: |
+        set -euo pipefail
+
+        case "$PACKAGE_MANAGER" in
+          pnpm) lockfile=pnpm-lock.yaml; install="pnpm install --frozen-lockfile" ;;
+          npm) lockfile=package-lock.json; install="npm ci" ;;
+          yarn)
+            lockfile=yarn.lock
+            # ? classic and berry disagree on the flag, the lockfile header tells them apart
+            if [ -f yarn.lock ] && grep -q '^# yarn lockfile v1' yarn.lock; then
+              install="yarn install --frozen-lockfile"
+            else
+              install="yarn install --immutable"
+            fi
+            ;;
+          *) echo "::error::Unsupported package-manager '$PACKAGE_MANAGER', expected pnpm, npm or yarn"; exit 1 ;;
+        esac
+
+        if [ -n "$INSTALL_COMMAND" ]; then
+          install="$INSTALL_COMMAND"
+        fi
+
+        echo "file=$lockfile" >> "$GITHUB_OUTPUT"
+        echo "install=$install" >> "$GITHUB_OUTPUT"
+
+    - name: Install Node
+      uses: actions/setup-node@v6
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: ${{ inputs.package-manager }}
+        cache-dependency-path: ${{ inputs.working-directory }}/${{ steps.lock.outputs.file }}
+
+    - name: Cache node_modules
+      id: cache
+      if: inputs.cache-node-modules == 'true'
+      uses: actions/cache@v6
+      with:
+        path: ${{ inputs.working-directory }}/node_modules
+        key: ${{ runner.os }}-node${{ inputs.node-version }}-modules-${{ hashFiles(format('{0}/{1}', inputs.working-directory, steps.lock.outputs.file)) }}
+
+    - name: Install dependencies
+      if: inputs.install == 'true' && steps.cache.outputs.cache-hit != 'true'
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: ${{ steps.lock.outputs.install }}
