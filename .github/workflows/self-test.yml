@@ -8,21 +8,41 @@ permissions:
   contents: read
 
 jobs:
-  sticky-comment:
-    name: Sticky comment
+  setup:
+    name: Setup action
     runs-on: ubuntu-latest
-    if: github.event.pull_request.head.repo.full_name == github.repository
     permissions:
       contents: read
       pull-requests: write
     steps:
       - uses: actions/checkout@v7
 
-      - uses: ./.github/actions/sticky-comment
+      - uses: ./.github/actions/setup
+        id: setup
+
+      - name: Toolchain works
+        id: toolchain
+        run: |
+          {
+            echo "node=$(node --version)"
+            echo "pnpm=$(pnpm --version)"
+            echo "commitlint=$(pnpm exec commitlint --version)"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Comment on PR
+        if: github.event.pull_request.head.repo.full_name == github.repository
+        uses: ./.github/actions/sticky-comment
         with:
           marker: "<!-- ci-selftest -->"
           body: |
             ## Self-test
 
-            Posted by `sticky-comment` on run ${{ github.run_number }} for commit ${{ github.event.pull_request.head.sha }}.
-            Push again and this comment is updated in place instead of a new one appearing.
+            | Tool | Version |
+            | --- | --- |
+            | Node | ${{ steps.toolchain.outputs.node }} |
+            | pnpm | ${{ steps.toolchain.outputs.pnpm }} |
+            | commitlint | ${{ steps.toolchain.outputs.commitlint }} |
+
+            node_modules cache: ${{ steps.setup.outputs.cache-hit == 'true' && 'hit' || 'miss' }}
+
+            Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
