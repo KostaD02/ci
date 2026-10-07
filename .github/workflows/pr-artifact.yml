@@ -1,0 +1,95 @@
+name: PR Artifact
+
+on:
+  workflow_call:
+    inputs:
+      internal-artifact:
+        description: Name of the artifact produced by node-build.yml.
+        required: true
+        type: string
+      prefix:
+        description: Artifact name prefix, biolume becomes biolume-PR-12-3.
+        required: true
+        type: string
+      path:
+        description: Directory the artifact is downloaded into and re-uploaded from.
+        required: false
+        type: string
+        default: dist
+      title:
+        required: false
+        type: string
+        default: "📦 Artifact"
+      size-table:
+        description: none, files or css.
+        required: false
+        type: string
+        default: none
+      footer:
+        description: Markdown appended to the comment.
+        required: false
+        type: string
+        default: ""
+      links:
+        description: JSON array of extra links for the comment.
+        required: false
+        type: string
+        default: ""
+      comment:
+        required: false
+        type: boolean
+        default: true
+      marker:
+        required: false
+        type: string
+        default: "<!-- pr-artifact-report -->"
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+    outputs:
+      artifact-name:
+        description: Public name of the PR artifact.
+        value: ${{ jobs.artifact.outputs.artifact-name }}
+      artifact-url:
+        description: Download URL of the PR artifact.
+        value: ${{ jobs.artifact.outputs.artifact-url }}
+
+jobs:
+  artifact:
+    name: Artifact
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      artifact-name: ${{ steps.name.outputs.value }}
+      artifact-url: ${{ steps.upload.outputs.artifact-url }}
+    steps:
+      - name: Compute artifact name
+        id: name
+        run: echo "value=${{ inputs.prefix }}-PR-${{ github.event.pull_request.number }}-${{ github.event.pull_request.commits }}" >> "$GITHUB_OUTPUT"
+
+      - name: Download build output
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ inputs.internal-artifact }}
+          path: ${{ inputs.path }}
+
+      - name: Upload PR artifact
+        id: upload
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.name.outputs.value }}
+          path: ${{ inputs.path }}
+          if-no-files-found: error
+
+      - name: Comment artifact on PR
+        if: inputs.comment && github.event.pull_request.head.repo.full_name == github.repository
+        uses: KostaD02/ci/.github/actions/artifact-comment@main
+        with:
+          artifact-name: ${{ steps.name.outputs.value }}
+          artifact-url: ${{ steps.upload.outputs.artifact-url }}
+          title: ${{ inputs.title }}
+          marker: ${{ inputs.marker }}
+          size-table: ${{ inputs.size-table }}
+          size-dir: ${{ inputs.path }}
+          links: ${{ inputs.links }}
+          footer: ${{ inputs.footer }}

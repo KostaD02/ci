@@ -63,6 +63,17 @@ jobs:
       run: mkdir -p dist && cp README.md dist/
       artifact-path: dist
 
+  artifact:
+    needs: [build]
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/pr-artifact.yml
+    with:
+      internal-artifact: ${{ needs.build.outputs.artifact }}
+      prefix: ci
+      size-table: files
+
   node-run:
     uses: ./.github/workflows/node-run.yml
     with:
