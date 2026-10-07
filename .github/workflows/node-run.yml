@@ -1,0 +1,129 @@
+name: Node Run
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        description: Job name shown in the checks list.
+        required: false
+        type: string
+        default: Check
+      run:
+        description: Command(s) to run. Multi-line is allowed.
+        required: true
+        type: string
+      run-on-push:
+        description: Command(s) to run instead of run on push events, for the affected-on-PR, everything-on-main pattern.
+        required: false
+        type: string
+        default: ""
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      package-manager:
+        description: pnpm, npm or yarn.
+        required: false
+        type: string
+        default: pnpm
+      pnpm-version:
+        description: Leave empty to read it from the packageManager field.
+        required: false
+        type: string
+        default: ""
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+      fetch-depth:
+        description: Checkout depth. Use 0 for nx affected or anything that reads git history.
+        required: false
+        type: number
+        default: 1
+      working-directory:
+        required: false
+        type: string
+        default: "."
+      nx-set-shas:
+        description: Run nrwl/nx-set-shas before the command.
+        required: false
+        type: boolean
+        default: false
+      env:
+        description: Extra environment variables, one KEY=value per line.
+        required: false
+        type: string
+        default: ""
+      artifact-name:
+        description: Upload artifact-path under this name when set.
+        required: false
+        type: string
+        default: ""
+      artifact-path:
+        required: false
+        type: string
+        default: ""
+      artifact-retention-days:
+        required: false
+        type: number
+        default: 7
+      comment-file:
+        description: Markdown file to post as a sticky PR comment after the run.
+        required: false
+        type: string
+        default: ""
+      comment-marker:
+        required: false
+        type: string
+        default: "<!-- report -->"
+
+jobs:
+  check:
+    name: ${{ inputs.name }}
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+
+      - uses: KostaD02/ci/.github/actions/setup@main
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          pnpm-version: ${{ inputs.pnpm-version }}
+          working-directory: ${{ inputs.working-directory }}
+
+      - uses: nrwl/nx-set-shas@v5
+        if: inputs.nx-set-shas
+
+      - name: Export extra environment
+        if: inputs.env != ''
+        env:
+          EXTRA_ENV: ${{ inputs.env }}
+        run: printf '%s\n' "$EXTRA_ENV" >> "$GITHUB_ENV"
+
+      - name: ${{ inputs.name }}
+        if: github.event_name != 'push' || inputs.run-on-push == ''
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.run }}
+
+      - name: ${{ inputs.name }} (push)
+        if: github.event_name == 'push' && inputs.run-on-push != ''
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.run-on-push }}
+
+      - name: Upload artifact
+        if: always() && inputs.artifact-name != '' && inputs.artifact-path != ''
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ inputs.artifact-name }}
+          path: ${{ inputs.artifact-path }}
+          retention-days: ${{ inputs.artifact-retention-days }}
+          if-no-files-found: error
+
+      - name: Comment report on PR
+        if: github.event_name == 'pull_request' && inputs.comment-file != ''
+        uses: KostaD02/ci/.github/actions/sticky-comment@main
+        with:
+          marker: ${{ inputs.comment-marker }}
+          body-file: ${{ inputs.comment-file }}
