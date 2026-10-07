@@ -2,6 +2,7 @@ name: Self-test
 
 on:
   pull_request:
+    types: [opened, edited, synchronize, reopened]
     branches: [main]
 
 permissions:
@@ -49,6 +50,9 @@ jobs:
             node_modules cache: ${{ steps.setup.outputs.cache-hit == 'true' && 'hit' || 'miss' }}
 
             Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
+
+  pr-title:
+    uses: ./.github/workflows/pr-title.yml
 
   format:
     uses: ./.github/workflows/format.yml
