@@ -46,3 +46,15 @@ jobs:
             node_modules cache: ${{ steps.setup.outputs.cache-hit == 'true' && 'hit' || 'miss' }}
 
             Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
+
+  format:
+    uses: ./.github/workflows/node-run.yml
+    with:
+      name: Format
+      run: pnpm run format:check
+
+  lint:
+    uses: ./.github/workflows/node-run.yml
+    with:
+      name: Lint
+      run: pnpm run lint
