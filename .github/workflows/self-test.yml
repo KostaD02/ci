@@ -48,13 +48,16 @@ jobs:
             Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
 
   format:
-    uses: ./.github/workflows/node-run.yml
-    with:
-      name: Format
-      run: pnpm run format:check
+    uses: ./.github/workflows/format.yml
 
   lint:
+    uses: ./.github/workflows/lint.yml
+
+  node-run:
     uses: ./.github/workflows/node-run.yml
     with:
-      name: Lint
-      run: pnpm run lint
+      # ? wrappers call node-run@main, so only this job runs the version from the PR
+      name: Node run
+      run: |
+        pnpm run format:check
+        pnpm run lint

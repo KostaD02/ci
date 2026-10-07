@@ -1,0 +1,34 @@
+name: Format
+
+on:
+  workflow_call:
+    inputs:
+      run:
+        description: Format check command.
+        required: false
+        type: string
+        default: pnpm run format:check
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      package-manager:
+        description: pnpm, npm or yarn.
+        required: false
+        type: string
+        default: pnpm
+      pnpm-version:
+        description: Leave empty to read it from the packageManager field.
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  format:
+    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    with:
+      name: Format
+      run: ${{ inputs.run }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
