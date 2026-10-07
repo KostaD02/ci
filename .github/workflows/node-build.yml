@@ -1,0 +1,125 @@
+name: Node Build
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: false
+        type: string
+        default: Build
+      run:
+        description: Build command(s). Multi-line is allowed.
+        required: true
+        type: string
+      pre-run:
+        description: Command(s) to run after the install and before the build. PR_NUMBER is set on pull requests.
+        required: false
+        type: string
+        default: ""
+      pre-run-when:
+        description: always, or an event name such as pull_request.
+        required: false
+        type: string
+        default: always
+      artifact-path:
+        description: Path or glob uploaded as the internal artifact, relative to the repository root.
+        required: false
+        type: string
+        default: dist
+      artifact-prefix:
+        required: false
+        type: string
+        default: dist
+      retention-days:
+        required: false
+        type: number
+        default: 1
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      package-manager:
+        description: pnpm, npm or yarn.
+        required: false
+        type: string
+        default: pnpm
+      pnpm-version:
+        description: Leave empty to read it from the packageManager field.
+        required: false
+        type: string
+        default: ""
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+      fetch-depth:
+        required: false
+        type: number
+        default: 1
+      working-directory:
+        required: false
+        type: string
+        default: "."
+      nx-set-shas:
+        required: false
+        type: boolean
+        default: false
+      env:
+        description: Extra environment variables, one KEY=value per line.
+        required: false
+        type: string
+        default: ""
+    outputs:
+      artifact:
+        description: Name of the internal artifact holding the build output.
+        value: ${{ jobs.build.outputs.artifact }}
+
+jobs:
+  build:
+    name: ${{ inputs.name }}
+    runs-on: ${{ inputs.runs-on }}
+    outputs:
+      artifact: ${{ steps.artifact.outputs.name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: ${{ inputs.fetch-depth }}
+
+      - uses: KostaD02/ci/.github/actions/setup@main
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          pnpm-version: ${{ inputs.pnpm-version }}
+          working-directory: ${{ inputs.working-directory }}
+
+      - uses: nrwl/nx-set-shas@v5
+        if: inputs.nx-set-shas
+
+      - name: Export extra environment
+        if: inputs.env != ''
+        env:
+          EXTRA_ENV: ${{ inputs.env }}
+        run: printf '%s\n' "$EXTRA_ENV" >> "$GITHUB_ENV"
+
+      - name: Prepare
+        if: inputs.pre-run != '' && (inputs.pre-run-when == 'always' || github.event_name == inputs.pre-run-when)
+        working-directory: ${{ inputs.working-directory }}
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: ${{ inputs.pre-run }}
+
+      - name: ${{ inputs.name }}
+        working-directory: ${{ inputs.working-directory }}
+        run: ${{ inputs.run }}
+
+      - name: Compute artifact name
+        id: artifact
+        run: echo "name=${{ inputs.artifact-prefix }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ${{ inputs.artifact-path }}
+          if-no-files-found: error
+          retention-days: ${{ inputs.retention-days }}

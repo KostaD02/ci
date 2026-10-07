@@ -53,6 +53,13 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  build:
+    uses: ./.github/workflows/node-build.yml
+    with:
+      name: Build
+      run: mkdir -p dist && cp README.md dist/
+      artifact-path: dist
+
   node-run:
     uses: ./.github/workflows/node-run.yml
     with:

@@ -81,8 +81,6 @@ runs:
       uses: actions/setup-node@v6
       with:
         node-version: ${{ inputs.node-version }}
-        cache: ${{ inputs.package-manager }}
-        cache-dependency-path: ${{ inputs.working-directory }}/${{ steps.lock.outputs.file }}
 
     - name: Cache node_modules
       id: cache
