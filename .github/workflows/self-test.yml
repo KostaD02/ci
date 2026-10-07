@@ -29,6 +29,9 @@ jobs:
             echo "commitlint=$(pnpm exec commitlint --version)"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Scripts parse
+        run: node --check .github/actions/artifact-comment/comment-pr.cjs
+
       - name: Comment on PR
         if: github.event.pull_request.head.repo.full_name == github.repository
         uses: ./.github/actions/sticky-comment

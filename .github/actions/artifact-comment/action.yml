@@ -1,0 +1,72 @@
+name: Artifact comment
+description: Create or update a single sticky pull request comment describing the build artifact, with optional extra links, a file size table and the history of previous builds.
+
+inputs:
+  artifact-name:
+    description: Public name of the artifact.
+    required: true
+  artifact-url:
+    description: Download URL of the artifact.
+    required: true
+  title:
+    description: Heading of the comment.
+    required: false
+    default: "📦 Artifact"
+  marker:
+    description: Hidden marker used to find and update the existing comment.
+    required: false
+    default: "<!-- pr-artifact-report -->"
+  size-table:
+    description: none to omit the table, files for a name and size table, css for a CSS, minified and gzipped table.
+    required: false
+    default: none
+  size-dir:
+    description: Directory scanned to build the size table.
+    required: false
+    default: ""
+  links:
+    description: JSON array of extra links, for example [{"label":"server image","url":"https://...","note":"🐳"}].
+    required: false
+    default: ""
+  footer:
+    description: Markdown appended after the table.
+    required: false
+    default: ""
+  max-entries:
+    description: How many builds to keep in the history table.
+    required: false
+    default: "10"
+  token:
+    description: Token used to read and write the comment.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  body:
+    description: The markdown body that was posted.
+    value: ${{ steps.comment.outputs.result }}
+
+runs:
+  using: composite
+  steps:
+    - name: Upsert PR comment
+      id: comment
+      uses: actions/github-script@v9
+      env:
+        ACTION_PATH: ${{ github.action_path }}
+        ARTIFACT_NAME: ${{ inputs.artifact-name }}
+        ARTIFACT_URL: ${{ inputs.artifact-url }}
+        PR_COMMIT_COUNT: ${{ github.event.pull_request.commits }}
+        TITLE: ${{ inputs.title }}
+        MARKER: ${{ inputs.marker }}
+        SIZE_TABLE: ${{ inputs.size-table }}
+        SIZE_DIR: ${{ inputs.size-dir }}
+        LINKS: ${{ inputs.links }}
+        FOOTER: ${{ inputs.footer }}
+        MAX_ENTRIES: ${{ inputs.max-entries }}
+      with:
+        github-token: ${{ inputs.token }}
+        result-encoding: string
+        script: |
+          const report = require(`${process.env.ACTION_PATH}/comment-pr.cjs`);
+          return await report({ github, context });
