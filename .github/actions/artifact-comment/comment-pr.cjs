@@ -1,5 +1,5 @@
 const { existsSync, readdirSync, readFileSync, statSync } = require("node:fs");
-const { join, relative } = require("node:path");
+const { join, relative, sep } = require("node:path");
 const { gzipSync } = require("node:zlib");
 
 const MAX_ENTRIES = Number(process.env.MAX_ENTRIES || 10);
@@ -92,6 +92,10 @@ function readHistory(existing) {
   }
 }
 
+function displayPath(dir, file) {
+  return relative(dir, file).split(sep).join("/");
+}
+
 function formatSize(bytes) {
   return `${(bytes / 1000).toFixed(1)} kB`;
 }
@@ -119,7 +123,7 @@ function collectSizes(mode, dir) {
         const minified = existsSync(minPath) ? readFileSync(minPath) : expanded;
 
         return {
-          file: relative(dir, file),
+          file: displayPath(dir, file),
           columns: [
             formatSize(expanded.length),
             formatSize(minified.length),
@@ -130,7 +134,7 @@ function collectSizes(mode, dir) {
   }
 
   return files.map((file) => ({
-    file: relative(dir, file),
+    file: displayPath(dir, file),
     columns: [formatSize(statSync(file).size)],
   }));
 }
