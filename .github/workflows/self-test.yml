@@ -30,9 +30,6 @@ jobs:
             echo "commitlint=$(pnpm exec commitlint --version)"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Scripts parse
-        run: node --check .github/actions/artifact-comment/comment-pr.cjs
-
       - name: Comment on PR
         if: github.event.pull_request.head.repo.full_name == github.repository
         uses: ./.github/actions/sticky-comment
@@ -60,6 +57,12 @@ jobs:
   lint:
     uses: ./.github/workflows/lint.yml
 
+  typecheck:
+    uses: ./.github/workflows/typecheck.yml
+
+  test:
+    uses: ./.github/workflows/test.yml
+
   build:
     uses: ./.github/workflows/node-build.yml
     with:
@@ -86,3 +89,5 @@ jobs:
       run: |
         pnpm run format:check
         pnpm run lint
+        pnpm run typecheck
+        pnpm run test

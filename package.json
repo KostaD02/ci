@@ -11,7 +11,9 @@
     "lint": "pnpm run lint:actions && pnpm run lint:js",
     "lint:actions": "github-actionlint",
     "lint:js": "eslint .",
-    "lint:fix": "eslint . --fix"
+    "lint:fix": "eslint . --fix",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
   },
   "keywords": [],
   "author": "Konstantine Datunishvili <konstantineda@datunishvili.ge>",
@@ -21,10 +23,12 @@
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
+    "@types/node": "^26.6.4",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "github-actionlint": "^1.7.12",
     "husky": "^9.1.7",
-    "prettier": "^3.9.9"
+    "prettier": "^3.9.9",
+    "typescript": "^7.0.2"
   }
 }
