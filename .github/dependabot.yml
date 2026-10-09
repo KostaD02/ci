@@ -1,0 +1,41 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tbilisi
+    open-pull-requests-limit: 3
+    rebase-strategy: disabled
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      commitlint:
+        patterns:
+          - "@commitlint/*"
+      eslint-prettier:
+        patterns:
+          - "eslint"
+          - "eslint-*"
+          - "@eslint/*"
+          - "prettier"
+      types:
+        patterns:
+          - "@types/*"
+
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Tbilisi
+    open-pull-requests-limit: 3
+    rebase-strategy: disabled
+    commit-message:
+      prefix: ci
