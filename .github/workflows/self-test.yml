@@ -1,6 +1,8 @@
 name: Self-test
 
 on:
+  push:
+    branches: [main]
   pull_request:
     types: [opened, edited, synchronize, reopened]
     branches: [main]
@@ -49,6 +51,7 @@ jobs:
             Build N${{ github.event.pull_request.commits }} for commit ${{ github.event.pull_request.head.sha }}. Updated in place on every push.
 
   pr-title:
+    if: github.event_name == 'pull_request'
     uses: ./.github/workflows/pr-title.yml
 
   format:
@@ -71,6 +74,7 @@ jobs:
       artifact-path: dist
 
   artifact:
+    if: github.event_name == 'pull_request'
     needs: [build]
     permissions:
       contents: read
@@ -80,6 +84,18 @@ jobs:
       internal-artifact: ${{ needs.build.outputs.artifact }}
       prefix: ci
       size-table: files
+
+  pages:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: ./.github/workflows/pages-preview.yml
+    with:
+      name: Pages
+      run: mkdir -p dist && sed "s#__BASE__#$SITE_BASE#g" site/index.html > dist/index.html
+      folder: dist
+      base-path-env: SITE_BASE
+      preview-comment: true
 
   node-run:
     uses: ./.github/workflows/node-run.yml

@@ -1,0 +1,16 @@
+name: Preview Cleanup
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  remove:
+    permissions:
+      contents: write
+      pull-requests: write
+    uses: ./.github/workflows/pages-cleanup.yml
