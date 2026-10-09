@@ -1,0 +1,114 @@
+name: Pages Preview
+
+on:
+  workflow_call:
+    inputs:
+      name:
+        required: false
+        type: string
+        default: Pages
+      run:
+        description: Command that produces the static site.
+        required: true
+        type: string
+      folder:
+        description: Directory holding the built site.
+        required: true
+        type: string
+      base-path-env:
+        description: Environment variable the build reads for its base path, such as STORYBOOK_BASE. Leave empty if the build does not need one.
+        required: false
+        type: string
+        default: ""
+      branch:
+        description: Branch that serves GitHub Pages.
+        required: false
+        type: string
+        default: gh-pages
+      preview-comment:
+        description: Let the preview action post its own comment.
+        required: false
+        type: boolean
+        default: false
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      package-manager:
+        description: pnpm, npm or yarn.
+        required: false
+        type: string
+        default: pnpm
+      pnpm-version:
+        description: Leave empty to read it from the packageManager field.
+        required: false
+        type: string
+        default: ""
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+    outputs:
+      base-path:
+        description: The base path the site was built for.
+        value: ${{ jobs.pages.outputs.base-path }}
+
+jobs:
+  pages:
+    name: ${{ inputs.name }}
+    runs-on: ${{ inputs.runs-on }}
+    # ? forks cannot push to the pages branch, skip them instead of failing
+    if: >-
+      github.event_name != 'pull_request' ||
+      github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    outputs:
+      base-path: ${{ steps.base.outputs.value }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: KostaD02/ci/.github/actions/setup@main
+        with:
+          node-version: ${{ inputs.node-version }}
+          package-manager: ${{ inputs.package-manager }}
+          pnpm-version: ${{ inputs.pnpm-version }}
+
+      - name: Resolve base path
+        id: base
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          repo="${GITHUB_REPOSITORY#*/}"
+
+          if [ "$GITHUB_EVENT_NAME" = "pull_request" ]; then
+            echo "value=/$repo/pr-preview/pr-$PR_NUMBER/" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=/$repo/" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Export base path
+        if: inputs.base-path-env != ''
+        run: echo "${{ inputs.base-path-env }}=${{ steps.base.outputs.value }}" >> "$GITHUB_ENV"
+
+      - name: ${{ inputs.name }}
+        run: ${{ inputs.run }}
+
+      - name: Deploy PR preview
+        if: github.event_name == 'pull_request'
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ${{ inputs.folder }}
+          action: deploy
+          comment: ${{ inputs.preview-comment }}
+
+      - name: Deploy to Pages
+        if: github.event_name == 'push'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: ${{ inputs.branch }}
+          folder: ${{ inputs.folder }}
+          clean-exclude: pr-preview/

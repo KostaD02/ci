@@ -1,0 +1,25 @@
+name: Pages Cleanup
+
+on:
+  workflow_call:
+    inputs:
+      runs-on:
+        required: false
+        type: string
+        default: ubuntu-latest
+
+jobs:
+  remove:
+    name: Remove preview
+    runs-on: ${{ inputs.runs-on }}
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Remove PR preview
+        uses: rossjrw/pr-preview-action@v1
+        with:
+          action: remove
