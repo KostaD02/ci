@@ -2,6 +2,10 @@
   "name": "ci",
   "version": "1.0.0",
   "description": "Reusable GitHub Actions workflows for my repositories",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KostaD02/ci.git"
+  },
   "private": true,
   "type": "module",
   "scripts": {
@@ -13,7 +17,11 @@
     "lint:js": "eslint .",
     "lint:fix": "eslint . --fix",
     "test": "node --test",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "release": "release-it",
+    "release:patch": "release-it patch",
+    "release:minor": "release-it minor",
+    "release:major": "release-it major"
   },
   "keywords": [],
   "author": "Konstantine Datunishvili <konstantineda@datunishvili.ge>",
@@ -23,12 +31,64 @@
     "@commitlint/cli": "^21.2.3",
     "@commitlint/config-conventional": "^21.2.3",
     "@eslint/js": "^10.0.1",
+    "@release-it/conventional-changelog": "^12.0.2",
     "@types/node": "^26.6.4",
     "eslint": "^10.12.0",
     "eslint-config-prettier": "^10.1.8",
     "github-actionlint": "^1.7.12",
     "husky": "^9.1.7",
     "prettier": "^3.9.9",
+    "release-it": "^21.1.1",
     "typescript": "^7.0.2"
+  },
+  "release-it": {
+    "git": {
+      "commitMessage": "chore: release v${version}",
+      "tagName": "v${version}",
+      "requireBranch": "main"
+    },
+    "github": {
+      "release": false
+    },
+    "npm": {
+      "publish": false
+    },
+    "hooks": {
+      "before:init": [
+        "pnpm run lint",
+        "pnpm run typecheck",
+        "pnpm run test"
+      ]
+    },
+    "plugins": {
+      "@release-it/conventional-changelog": {
+        "infile": "CHANGELOG.md",
+        "preset": {
+          "name": "conventionalcommits",
+          "types": [
+            {
+              "type": "feat",
+              "section": "Features"
+            },
+            {
+              "type": "fix",
+              "section": "Bug Fixes"
+            },
+            {
+              "type": "ci",
+              "section": "Workflows"
+            },
+            {
+              "type": "docs",
+              "section": "Documentations"
+            },
+            {
+              "type": "refactor",
+              "section": "Refactors"
+            }
+          ]
+        }
+      }
+    }
   }
 }

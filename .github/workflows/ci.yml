@@ -94,7 +94,7 @@ jobs:
     if: inputs.format != ''
     permissions:
       contents: read
-    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    uses: KostaD02/ci/.github/workflows/node-run.yml@v1
     with:
       name: Format
       run: ${{ inputs.format }}
@@ -107,7 +107,7 @@ jobs:
     if: inputs.lint != ''
     permissions:
       contents: read
-    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    uses: KostaD02/ci/.github/workflows/node-run.yml@v1
     with:
       name: Lint
       run: ${{ inputs.lint }}
@@ -120,7 +120,7 @@ jobs:
     if: inputs.typecheck != ''
     permissions:
       contents: read
-    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    uses: KostaD02/ci/.github/workflows/node-run.yml@v1
     with:
       name: Typecheck
       run: ${{ inputs.typecheck }}
@@ -133,7 +133,7 @@ jobs:
     if: inputs.test != ''
     permissions:
       contents: read
-    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    uses: KostaD02/ci/.github/workflows/node-run.yml@v1
     with:
       name: Test
       run: ${{ inputs.test }}
@@ -147,7 +147,7 @@ jobs:
     if: ${{ !cancelled() && inputs.build != '' && !contains(needs.*.result, 'failure') }}
     permissions:
       contents: read
-    uses: KostaD02/ci/.github/workflows/node-build.yml@main
+    uses: KostaD02/ci/.github/workflows/node-build.yml@v1
     with:
       name: Artifact
       run: ${{ inputs.build }}
@@ -162,7 +162,7 @@ jobs:
     name: Publish
     needs: [build]
     if: github.event_name == 'pull_request' && needs.build.result == 'success'
-    uses: KostaD02/ci/.github/workflows/pr-artifact.yml@main
+    uses: KostaD02/ci/.github/workflows/pr-artifact.yml@v1
     with:
       internal-artifact: ${{ needs.build.outputs.artifact }}
       prefix: ${{ inputs.artifact-prefix != '' && inputs.artifact-prefix || github.event.repository.name }}
@@ -173,7 +173,7 @@ jobs:
     name: Deploy
     needs: [build]
     if: ${{ !cancelled() && inputs.pages != '' && needs.build.result != 'failure' }}
-    uses: KostaD02/ci/.github/workflows/pages-preview.yml@main
+    uses: KostaD02/ci/.github/workflows/pages-preview.yml@v1
     with:
       name: Pages
       run: ${{ inputs.pages }}

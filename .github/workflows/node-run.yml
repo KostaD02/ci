@@ -86,7 +86,7 @@ jobs:
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
 
-      - uses: KostaD02/ci/.github/actions/setup@main
+      - uses: KostaD02/ci/.github/actions/setup@v1
         with:
           node-version: ${{ inputs.node-version }}
           package-manager: ${{ inputs.package-manager }}
@@ -123,7 +123,7 @@ jobs:
 
       - name: Comment report on PR
         if: github.event_name == 'pull_request' && inputs.comment-file != ''
-        uses: KostaD02/ci/.github/actions/sticky-comment@main
+        uses: KostaD02/ci/.github/actions/sticky-comment@v1
         with:
           marker: ${{ inputs.comment-marker }}
           body-file: ${{ inputs.comment-file }}

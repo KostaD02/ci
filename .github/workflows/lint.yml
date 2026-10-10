@@ -25,7 +25,7 @@ on:
 
 jobs:
   lint:
-    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    uses: KostaD02/ci/.github/workflows/node-run.yml@v1
     with:
       name: Lint
       run: ${{ inputs.run }}

@@ -42,6 +42,6 @@ The pre-commit hook runs the same four. `self-test.yml` then runs every workflow
 
 ## Keep in mind
 
-- A reusable workflow runs with the caller's repository checked out, so everything it references in this repository uses the full path on `main`, for example `KostaD02/ci/.github/actions/setup@main`. A new action has to be on `main` before a workflow that uses it.
+- A reusable workflow runs with the caller's repository checked out, so everything it references in this repository uses the full path on the current major tag, for example `KostaD02/ci/.github/actions/setup@v1`. A change to an action has to be released before a workflow change that depends on it.
 - The workflows declare no `permissions`; the caller grants what a job needs.
-- A merge reaches every repository at once. To try a change first, point a job in another repository at the branch: `uses: KostaD02/ci/.github/workflows/lint.yml@ci/my-change`.
+- Releases are manual, from the Release workflow: release-it bumps the version, writes the changelog, tags `vX.Y.Z`, and the major tag `vX` moves to it. Repositories pin `@v1`, so a merge reaches nobody until a release. To try a change first, point a job in another repository at the branch: `uses: KostaD02/ci/.github/workflows/lint.yml@ci/my-change`.
