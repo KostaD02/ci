@@ -83,7 +83,7 @@ jobs:
 
       - name: Comment artifact on PR
         if: inputs.comment && github.event.pull_request.head.repo.full_name == github.repository
-        uses: KostaD02/ci/.github/actions/artifact-comment@main
+        uses: KostaD02/ci/.github/actions/artifact-comment@v1
         with:
           artifact-name: ${{ steps.name.outputs.value }}
           artifact-url: ${{ steps.upload.outputs.artifact-url }}

@@ -16,7 +16,7 @@ permissions:
 
 jobs:
   commitlint:
-    uses: KostaD02/ci/.github/workflows/pr-title.yml@main
+    uses: KostaD02/ci/.github/workflows/pr-title.yml@v1
 ```
 
 ```yaml
@@ -37,7 +37,7 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    uses: KostaD02/ci/.github/workflows/ci.yml@main
+    uses: KostaD02/ci/.github/workflows/ci.yml@v1
     with:
       build: pnpm run build
 ```

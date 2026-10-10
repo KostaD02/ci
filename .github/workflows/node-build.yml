@@ -85,7 +85,7 @@ jobs:
         with:
           fetch-depth: ${{ inputs.fetch-depth }}
 
-      - uses: KostaD02/ci/.github/actions/setup@main
+      - uses: KostaD02/ci/.github/actions/setup@v1
         with:
           node-version: ${{ inputs.node-version }}
           package-manager: ${{ inputs.package-manager }}
