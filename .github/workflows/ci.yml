@@ -1,0 +1,184 @@
+name: CI
+
+on:
+  workflow_call:
+    inputs:
+      format:
+        description: Format check command. Empty skips the job.
+        required: false
+        type: string
+        default: pnpm run format:check
+      lint:
+        description: Lint command. Empty skips the job.
+        required: false
+        type: string
+        default: pnpm run lint
+      typecheck:
+        description: Typecheck command. Empty skips the job.
+        required: false
+        type: string
+        default: pnpm run typecheck
+      test:
+        description: Test command. Empty skips the job.
+        required: false
+        type: string
+        default: pnpm run test
+      build:
+        description: Build command. Empty skips the build and the artifact.
+        required: false
+        type: string
+        default: ""
+      pre-build:
+        description: Command(s) to run before the build. PR_NUMBER is set on pull requests.
+        required: false
+        type: string
+        default: ""
+      pre-build-when:
+        description: always, or an event name such as pull_request.
+        required: false
+        type: string
+        default: always
+      artifact-path:
+        description: Path or glob the build produces.
+        required: false
+        type: string
+        default: dist
+      artifact-prefix:
+        description: PR artifact name prefix. Empty uses the repository name.
+        required: false
+        type: string
+        default: ""
+      size-table:
+        description: none, files or css.
+        required: false
+        type: string
+        default: none
+      footer:
+        description: Markdown appended to the artifact comment.
+        required: false
+        type: string
+        default: ""
+      pages:
+        description: Command that builds the static site. Empty skips Pages.
+        required: false
+        type: string
+        default: ""
+      pages-folder:
+        description: Directory holding the built site.
+        required: false
+        type: string
+        default: dist
+      pages-base-env:
+        description: Environment variable the site build reads for its base path.
+        required: false
+        type: string
+        default: ""
+      node-version:
+        required: false
+        type: string
+        default: "22"
+      package-manager:
+        description: pnpm, npm or yarn.
+        required: false
+        type: string
+        default: pnpm
+      pnpm-version:
+        description: Leave empty to read it from the packageManager field.
+        required: false
+        type: string
+        default: ""
+
+jobs:
+  format:
+    name: Check
+    if: inputs.format != ''
+    permissions:
+      contents: read
+    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    with:
+      name: Format
+      run: ${{ inputs.format }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
+
+  lint:
+    name: Check
+    if: inputs.lint != ''
+    permissions:
+      contents: read
+    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    with:
+      name: Lint
+      run: ${{ inputs.lint }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
+
+  typecheck:
+    name: Check
+    if: inputs.typecheck != ''
+    permissions:
+      contents: read
+    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    with:
+      name: Typecheck
+      run: ${{ inputs.typecheck }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
+
+  test:
+    name: Check
+    if: inputs.test != ''
+    permissions:
+      contents: read
+    uses: KostaD02/ci/.github/workflows/node-run.yml@main
+    with:
+      name: Test
+      run: ${{ inputs.test }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
+
+  build:
+    name: Build
+    needs: [format, lint, typecheck, test]
+    if: ${{ !cancelled() && inputs.build != '' && !contains(needs.*.result, 'failure') }}
+    permissions:
+      contents: read
+    uses: KostaD02/ci/.github/workflows/node-build.yml@main
+    with:
+      name: Artifact
+      run: ${{ inputs.build }}
+      pre-run: ${{ inputs.pre-build }}
+      pre-run-when: ${{ inputs.pre-build-when }}
+      artifact-path: ${{ inputs.artifact-path }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}
+
+  artifact:
+    name: Publish
+    needs: [build]
+    if: github.event_name == 'pull_request' && needs.build.result == 'success'
+    uses: KostaD02/ci/.github/workflows/pr-artifact.yml@main
+    with:
+      internal-artifact: ${{ needs.build.outputs.artifact }}
+      prefix: ${{ inputs.artifact-prefix != '' && inputs.artifact-prefix || github.event.repository.name }}
+      size-table: ${{ inputs.size-table }}
+      footer: ${{ inputs.footer }}
+
+  pages:
+    name: Deploy
+    needs: [build]
+    if: ${{ !cancelled() && inputs.pages != '' && needs.build.result != 'failure' }}
+    uses: KostaD02/ci/.github/workflows/pages-preview.yml@main
+    with:
+      name: Pages
+      run: ${{ inputs.pages }}
+      folder: ${{ inputs.pages-folder }}
+      base-path-env: ${{ inputs.pages-base-env }}
+      node-version: ${{ inputs.node-version }}
+      package-manager: ${{ inputs.package-manager }}
+      pnpm-version: ${{ inputs.pnpm-version }}

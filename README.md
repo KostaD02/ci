@@ -1,5 +1,3 @@
-# ci
-
 Reusable GitHub Actions workflows for my repositories.
 
 ## Usage
@@ -35,17 +33,20 @@ permissions:
   contents: read
 
 jobs:
-  format:
-    uses: KostaD02/ci/.github/workflows/format.yml@main
-
-  lint:
-    uses: KostaD02/ci/.github/workflows/lint.yml@main
+  hub:
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: KostaD02/ci/.github/workflows/ci.yml@main
+    with:
+      build: pnpm run build
 ```
 
 ## Workflows
 
 | Workflow            | Does                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------ |
+| `ci.yml`            | Format, lint, typecheck, test, build, artifact comment and Pages in one call.              |
 | `format.yml`        | `pnpm run format:check`                                                                    |
 | `lint.yml`          | `pnpm run lint`                                                                            |
 | `typecheck.yml`     | `pnpm run typecheck`                                                                       |
