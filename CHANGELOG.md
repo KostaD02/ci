@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.1](https://github.com/KostaD02/ci/compare/v1...v1.0.1) (2026-10-11)
+
+### Bug Fixes
+
+* publish artifact when a check is skipped ([#20](https://github.com/KostaD02/ci/issues/20)) ([8039284](https://github.com/KostaD02/ci/commit/8039284cf4d83f1c8dc6944ee989871ed4553d9f))
+
+### Workflows
+
+* release notes ([#19](https://github.com/KostaD02/ci/issues/19)) ([87cbeb4](https://github.com/KostaD02/ci/commit/87cbeb4814ed45e0a7326be36de32a4a23710e27))
+
 ## 1.0.0 (2026-10-10)
 
 ### Workflows
