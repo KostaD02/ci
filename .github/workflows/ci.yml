@@ -161,7 +161,7 @@ jobs:
   artifact:
     name: Publish
     needs: [build]
-    if: github.event_name == 'pull_request' && needs.build.result == 'success'
+    if: ${{ !cancelled() && github.event_name == 'pull_request' && needs.build.result == 'success' }}
     uses: KostaD02/ci/.github/workflows/pr-artifact.yml@v1
     with:
       internal-artifact: ${{ needs.build.outputs.artifact }}
