@@ -46,7 +46,7 @@ jobs:
 
 | Workflow            | Does                                                                                       |
 | ------------------- | ------------------------------------------------------------------------------------------ |
-| `ci.yml`            | Format, lint, typecheck, test, build, artifact comment and Pages in one call.              |
+| `ci.yml`            | Format, lint, typecheck, test, build and artifact comment in one call.                     |
 | `format.yml`        | `pnpm run format:check`                                                                    |
 | `lint.yml`          | `pnpm run lint`                                                                            |
 | `typecheck.yml`     | `pnpm run typecheck`                                                                       |
