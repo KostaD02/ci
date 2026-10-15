@@ -58,21 +58,6 @@ on:
         required: false
         type: string
         default: ""
-      pages:
-        description: Command that builds the static site. Empty skips Pages.
-        required: false
-        type: string
-        default: ""
-      pages-folder:
-        description: Directory holding the built site.
-        required: false
-        type: string
-        default: dist
-      pages-base-env:
-        description: Environment variable the site build reads for its base path.
-        required: false
-        type: string
-        default: ""
       node-version:
         required: false
         type: string
@@ -168,17 +153,3 @@ jobs:
       prefix: ${{ inputs.artifact-prefix != '' && inputs.artifact-prefix || github.event.repository.name }}
       size-table: ${{ inputs.size-table }}
       footer: ${{ inputs.footer }}
-
-  pages:
-    name: Deploy
-    needs: [build]
-    if: ${{ !cancelled() && inputs.pages != '' && needs.build.result != 'failure' }}
-    uses: KostaD02/ci/.github/workflows/pages-preview.yml@v1
-    with:
-      name: Pages
-      run: ${{ inputs.pages }}
-      folder: ${{ inputs.pages-folder }}
-      base-path-env: ${{ inputs.pages-base-env }}
-      node-version: ${{ inputs.node-version }}
-      package-manager: ${{ inputs.package-manager }}
-      pnpm-version: ${{ inputs.pnpm-version }}
