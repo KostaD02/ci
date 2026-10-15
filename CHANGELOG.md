@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.0.2](https://github.com/KostaD02/ci/compare/v1...v1.0.2) (2026-10-15)
+
+### Workflows
+
+* drop pages from combined ([#23](https://github.com/KostaD02/ci/issues/23)) ([bd165ea](https://github.com/KostaD02/ci/commit/bd165eab1d6fccd9c34600555f29e083f48b7aed))
+
 ## [1.0.1](https://github.com/KostaD02/ci/compare/v1...v1.0.1) (2026-10-11)
 
 ### Bug Fixes
