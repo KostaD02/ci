@@ -11,6 +11,11 @@ on:
         description: Build command(s). Multi-line is allowed.
         required: true
         type: string
+      pr-version:
+        description: On pull requests, append the PR number to the version in package.json after the install, 1.2.0 becomes 1.2.0.22. Other events keep the version.
+        required: false
+        type: boolean
+        default: false
       pre-run:
         description: Command(s) to run after the install and before the build. PR_NUMBER is set on pull requests.
         required: false
@@ -100,6 +105,12 @@ jobs:
         env:
           EXTRA_ENV: ${{ inputs.env }}
         run: printf '%s\n' "$EXTRA_ENV" >> "$GITHUB_ENV"
+
+      - name: PR version
+        if: inputs.pr-version && github.event_name == 'pull_request'
+        uses: KostaD02/ci/.github/actions/pr-version@v1
+        with:
+          working-directory: ${{ inputs.working-directory }}
 
       - name: Prepare
         if: inputs.pre-run != '' && (inputs.pre-run-when == 'always' || github.event_name == inputs.pre-run-when)

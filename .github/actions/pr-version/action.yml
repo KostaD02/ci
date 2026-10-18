@@ -1,0 +1,28 @@
+name: PR version
+description: Append the pull request number to the version in package.json as an extra segment, so 1.2.0 becomes 1.2.0.22. Fails when the result would not be a valid Chrome extension version.
+
+inputs:
+  working-directory:
+    description: Directory holding package.json.
+    required: false
+    default: "."
+  pr-number:
+    description: Number appended to the version. Defaults to the pull request that triggered the run.
+    required: false
+    default: ${{ github.event.pull_request.number }}
+
+outputs:
+  version:
+    description: The version written to package.json.
+    value: ${{ steps.version.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Append PR number to version
+      id: version
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      env:
+        PR_NUMBER: ${{ inputs.pr-number }}
+      run: node "$GITHUB_ACTION_PATH/append-pr-version.cjs"
