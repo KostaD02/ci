@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.1.0](https://github.com/KostaD02/ci/compare/v1...v1.1.0) (2026-10-18)
+
+### Features
+
+* stamp pull request builds with the PR number ([#24](https://github.com/KostaD02/ci/issues/24)) ([b125682](https://github.com/KostaD02/ci/commit/b1256829f96f63a6e8b8efa99e11a1e11de89d0c))
+
 ## [1.0.2](https://github.com/KostaD02/ci/compare/v1...v1.0.2) (2026-10-15)
 
 ### Workflows
