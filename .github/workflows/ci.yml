@@ -28,6 +28,11 @@ on:
         required: false
         type: string
         default: ""
+      pr-version:
+        description: On pull requests, append the PR number to the version in package.json before the build, 1.2.0 becomes 1.2.0.22.
+        required: false
+        type: boolean
+        default: false
       pre-build:
         description: Command(s) to run before the build. PR_NUMBER is set on pull requests.
         required: false
@@ -136,6 +141,7 @@ jobs:
     with:
       name: Artifact
       run: ${{ inputs.build }}
+      pr-version: ${{ inputs.pr-version }}
       pre-run: ${{ inputs.pre-build }}
       pre-run-when: ${{ inputs.pre-build-when }}
       artifact-path: ${{ inputs.artifact-path }}
