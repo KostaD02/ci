@@ -154,3 +154,35 @@ test("ignores links that are not valid json", async () => {
   assert.doesNotMatch(body, /\[link\]/);
   assert.match(body, /\[ci-PR-7-1\.zip\]/);
 });
+
+test("totals the file sizes in the last row", async () => {
+  const dir = distWith({ "a.txt": "x".repeat(1234), "nested/b.txt": "y".repeat(2000) });
+  const { body } = await run({ SIZE_TABLE: "files", SIZE_DIR: dir });
+
+  assert.match(body, /\| `a\.txt` \| 1\.2 kB \|/);
+  assert.match(body, /\| `nested\/b\.txt` \| 2\.0 kB \|/);
+  assert.match(body, /\| \*\*Total\*\* \(2 files\) \| \*\*3\.2 kB\*\* \|/);
+});
+
+test("totals every column of the css table", async () => {
+  const dir = distWith({
+    "a.css": "a{color:red}\n".repeat(100),
+    "a.min.css": "a{color:red}".repeat(50),
+    "b.css": "b{color:blue}\n".repeat(100),
+    "b.min.css": "b{color:blue}".repeat(60),
+  });
+  const { body } = await run({ SIZE_TABLE: "css", SIZE_DIR: dir });
+
+  assert.match(
+    body,
+    /\| \*\*Total\*\* \(2 files\) \| \*\*2\.7 kB\*\* \| \*\*1\.4 kB\*\* \| \*\*\d+\.\d kB\*\* \|/,
+  );
+});
+
+test("says file in the singular and omits the total with no size table", async () => {
+  const dir = distWith({ "only.txt": "z".repeat(500) });
+  const { body } = await run({ SIZE_TABLE: "files", SIZE_DIR: dir });
+
+  assert.match(body, /\| \*\*Total\*\* \(1 file\) \| \*\*0\.5 kB\*\* \|/);
+  assert.doesNotMatch((await run({})).body, /Total/);
+});

@@ -124,18 +124,14 @@ function collectSizes(mode, dir) {
 
         return {
           file: displayPath(dir, file),
-          columns: [
-            formatSize(expanded.length),
-            formatSize(minified.length),
-            formatSize(gzipSync(minified).length),
-          ],
+          bytes: [expanded.length, minified.length, gzipSync(minified).length],
         };
       });
   }
 
   return files.map((file) => ({
     file: displayPath(dir, file),
-    columns: [formatSize(statSync(file).size)],
+    bytes: [statSync(file).size],
   }));
 }
 
@@ -158,11 +154,20 @@ function renderBody({ marker, entries, title, sizes, mode, footer }) {
 
   if (sizes.length) {
     const header = mode === "css" ? ["CSS", "Minified", "Gzipped"] : ["Size"];
+    // ? one total per column, summed from the raw byte counts rather than the rendered cells
+    const totals = header.map((_, column) =>
+      sizes.reduce((sum, entry) => sum + entry.bytes[column], 0),
+    );
+    const label = `**Total** (${sizes.length} ${sizes.length === 1 ? "file" : "files"})`;
+
     lines.push(
       ``,
       `| File | ${header.join(" | ")} |`,
       `| --- | ${header.map(() => "---:").join(" | ")} |`,
-      ...sizes.map((entry) => `| \`${entry.file}\` | ${entry.columns.join(" | ")} |`),
+      ...sizes.map(
+        (entry) => `| \`${entry.file}\` | ${entry.bytes.map(formatSize).join(" | ")} |`,
+      ),
+      `| ${label} | ${totals.map((total) => `**${formatSize(total)}**`).join(" | ")} |`,
     );
   }
 
