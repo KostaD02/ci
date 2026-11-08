@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.0](https://github.com/KostaD02/ci/compare/v1...v1.2.0) (2026-11-08)
+
+### Features
+
+* total the artifact size table ([#27](https://github.com/KostaD02/ci/issues/27)) ([739187f](https://github.com/KostaD02/ci/commit/739187f1f3084a665b9ef6b081e485a20ab5018a))
+
 ## [1.1.0](https://github.com/KostaD02/ci/compare/v1...v1.1.0) (2026-10-18)
 
 ### Features
